@@ -92,5 +92,4 @@ Arquivos que não devem ser rastreados pelo Git podem ser listados no arquivo `.
   ```
   *.log
   node_modules/
-  
-  voltar indice
+  ```

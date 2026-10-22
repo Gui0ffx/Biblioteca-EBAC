@@ -2,3 +2,5 @@
 .git/
 poetry.lock
 pyproject.toml
+__pycache__/
+git-atalhos.md

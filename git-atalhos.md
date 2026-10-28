@@ -77,3 +77,19 @@ Uma sequência comum no fluxo diário é:
 4. `git push`
 
 Isso ajuda a manter o projeto organizado e facilita a revisão das mudanças.
+remover um arquivo do repositório:
+
+- `git rm <arquivo>` — remove o arquivo do diretório de trabalho e do índice.
+- `git rm --cached <arquivo>` — remove o arquivo apenas do índice, mantendo-o no diretório de trabalho.
+remove arquivos do repositório de forma controlada. Use `git rm` quando quiser excluir arquivos do projeto e do índice, e `git rm --cached` quando quiser apenas parar de rastrear arquivos sem removê-los do diretório de trabalho.
+
+## 9) Ignorar arquivos
+
+Arquivos que não devem ser rastreados pelo Git podem ser listados no arquivo `.gitignore`.
+
+- Crie um arquivo `.gitignore` na raiz do repositório.
+- Adicione padrões de arquivos ou diretórios a serem ignorados, por exemplo:
+  ```
+  *.log
+  node_modules/
+  ```

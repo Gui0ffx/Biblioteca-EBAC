@@ -1,53 +1,60 @@
 from fastapi import FastAPI, HTTPException, Body
+from pydantic import BaseModel
+
 
 app = FastAPI()
 
-tarefas = []
 
-#------------(Funcao para validar se uma tarefa existe)------------#
+class Tarefa(BaseModel):
+    nome: str
+    descricao: str
+    concluida: bool = False
 
-def validar_tarefa(nome: str):
+tarefas: list[Tarefa] = []
+
+#------------(Funcao para buscar e validar se uma tarefa existe)------------#
+
+def buscar_tarefa(nome: str):
     for tarefa in tarefas:
-        if tarefa["nome"] == nome:
+        if tarefa.nome == nome:
             return tarefa
     return None
 
 #------------(Funcao para listar tarefas)------------#
 
 @app.get("/tarefas")
-def get_tarefas():
+def listar_tarefas():
     return {"tarefas": tarefas}
 
 #------------(Funcao para adicionar uma tarefa)------------#
 
-@app.post("/adicionar")
-def post_tarefa(nome: str = Body(embed=True), descricao: str = Body(embed=True)):
-    concluida = False
-    if validar_tarefa(nome):
-        raise HTTPException(status_code=409, detail="Essa tarefa já existe")
-  
-    tarefas.append({"nome": nome, "descricao": descricao, "concluida": concluida})
+@app.post("/adicionar", status_code=201)
+def criar_tarefa(tarefa: Tarefa):
+    if buscar_tarefa(tarefa.nome):
+        raise HTTPException(status_code=409, detail="Essa tarefa já existe") 
+    tarefas.append(tarefa)
     return {"message": "Tarefa criada com sucesso!"}
     
 #------------(Funcao para concluir tarefa)------------#
 
 @app.put("/concluir")
-def put_concluir(nome: str = Body(embed=True)):
-    tarefa = validar_tarefa(nome)
-    
-    if tarefa:
-        tarefa["concluida"] = True
-        return {"message": f"Tarefa '{nome}' marcada como concluída com sucesso!"}
-    raise HTTPException(status_code=404, detail="Tarefa não encontrada")
+def concluir_tarefa(nome: str = Body(embed=True)):
+    tarefa = buscar_tarefa(nome)
+    if not tarefa:
+        raise HTTPException(status_code=404, detail="Tarefa não encontrada")
+  
+    tarefa.concluida = True
+    return {"message": f"Tarefa '{nome}' marcada como concluída com sucesso!"}
+
     
 
 #------------(Funcao para deletar tarefas)------------#
 
-@app.delete("/delete")
-def delete_tarefa(nome: str = Body(embed=True)):
-    tarefa = validar_tarefa(nome)
-
-    if tarefa:
-        del tarefas[tarefas.index(tarefa)]
-        return {"message": f"Tarefa '{nome}' excluída com sucesso!"}
-    raise HTTPException(status_code=404, detail="Tarefa não encontrada")
+@app.delete("/deletar")
+def deletar_tarefa(nome: str = Body(embed=True)):
+    tarefa = buscar_tarefa(nome)
+    if not tarefa:
+        raise HTTPException(status_code=404, detail="Tarefa não encontrada")
+         
+    tarefas.remove(tarefa)
+    return {"message": f"Tarefa '{nome}' excluída com sucesso!"}

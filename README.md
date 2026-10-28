@@ -77,7 +77,7 @@ Com o servidor no ar, abra **http://127.0.0.1:8000/docs** para testar tudo pelo 
 | `GET` | `/tarefas` | — | Lista todas as tarefas |
 | `POST` | `/adicionar` | `{"nome": "...", "descricao": "..."}` | Cria uma tarefa (retorna **409** se o nome já existir) |
 | `PUT` | `/concluir` | `{"nome": "..."}` | Marca a tarefa como concluída (**404** se não existir) |
-| `DELETE` | `/delete` | `{"nome": "..."}` | Exclui a tarefa (**404** se não existir) |
+| `DELETE` | `/deletar` | `{"nome": "..."}` | Exclui a tarefa (**404** se não existir) |
 
 **Exemplo**
 

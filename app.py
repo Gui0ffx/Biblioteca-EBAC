@@ -46,8 +46,6 @@ def concluir_tarefa(nome: str = Body(embed=True)):
     tarefa.concluida = True
     return {"message": f"Tarefa '{nome}' marcada como concluída com sucesso!"}
 
-    
-
 #------------(Funcao para deletar tarefas)------------#
 
 @app.delete("/deletar")

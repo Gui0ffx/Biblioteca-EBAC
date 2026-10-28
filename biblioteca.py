@@ -24,7 +24,6 @@ def mostrar_erro(mensagem, segundos=2):
 #------------(Função para exibir o menu principal)------------#
 
 def exibir_menu(): 
-    """função que exibe o menu principal"""
     
     return(
         "1 - Adicionar livro \n"
@@ -85,7 +84,8 @@ def adicionar_livro(): #função que adiciona um livro ao sistema
 
 #------------(Função para listar todos os livros cadastrados)------------#
 
-def listar_livros(): #função que lista todos os livros cadastrados
+def listar_livros():
+
     os.system("cls" if os.name == "nt" else "clear")
     while True:
         if not livros:
@@ -104,7 +104,6 @@ def listar_livros(): #função que lista todos os livros cadastrados
 
 def remover_livro(): 
 
-    """função que remove um livro do sistema"""
     os.system("cls" if os.name == "nt" else "clear")
     while True:
         titulo = input("Título: ").strip().upper()
@@ -122,7 +121,6 @@ def remover_livro():
 #------------(Função para atualizar a quantidade de um livro)------------#
 
 def atualizar_quantidade(): 
-    """função que atualiza a quantidade de um livro no sistema"""
 
     os.system("cls" if os.name == "nt" else "clear")
     while True:
@@ -157,7 +155,6 @@ def atualizar_quantidade():
 #------------(Função para registrar um empréstimo de um livro)------------#
 
 def registrar_emprestimo(): 
-    """função que registra um empréstimo de um livro"""
 
     os.system("cls" if os.name == "nt" else "clear")
     while True:
@@ -198,7 +195,6 @@ def registrar_emprestimo():
 #------------(Função para exibir o log de todos os empréstimos registrados)------------#
 
 def log_emprestimos(): 
-    """função que exibe o log de todos os empréstimos registrados"""
 
     os.system("cls" if os.name == "nt" else "clear")
     while True:
@@ -216,7 +212,7 @@ def log_emprestimos():
 #------------(Função para sair do sistema)------------#
 
 def sair():
-    """função que encerra o sistema"""
+
     print("Saindo do sistema...")
     time.sleep(2)
     os.system("cls" if os.name == "nt" else "clear")
@@ -225,7 +221,7 @@ def sair():
 #------------(Função principal do sistema)------------#
 
 def main(): 
-    """função principal que gerencia o fluxo do sistema"""
+
     while True:
         os.system("cls" if os.name == "nt" else "clear")
         try: 

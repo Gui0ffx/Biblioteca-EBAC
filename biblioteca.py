@@ -270,6 +270,7 @@ def main():
 
         if opcao == 7:
             sair()
+            
     
 if __name__ == "__main__":
     main()

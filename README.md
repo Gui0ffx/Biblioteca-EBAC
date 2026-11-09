@@ -93,18 +93,6 @@ curl -X POST http://127.0.0.1:8000/adicionar \
 
 ---
 
-## 🌿 Guia de Git
-
-O arquivo [`git-atalhos.md`](git-atalhos.md) reúne os comandos mais usados, organizados por etapa: iniciar um repositório, preparar e salvar alterações, trabalhar com branches, sincronizar com o remoto e consultar o histórico.
-
----
-
-## 🛠️ Ambiente
-
-- Python 3.10 ou mais novo
-- Editor: VS Code, com o Poetry configurado como gerenciador de ambiente (`.vscode/settings.json`)
-- Dependências da API: `fastapi` e `uvicorn`
-
 <div align="center">
 <br>
 <sub>Feito por <a href="https://github.com/Gui0ffx">Gui0ffx</a> durante o curso de Back-end da <b>EBAC</b></sub>

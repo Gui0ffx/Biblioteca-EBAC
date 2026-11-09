@@ -90,8 +90,13 @@ curl -X POST http://127.0.0.1:8000/adicionar \
 ```json
 { "message": "Tarefa criada com sucesso!" }
 ```
-
 ---
+
+## 🛠️ Ambiente
+
+- Python 3.10 ou mais novo
+- Editor: VS Code, com o Poetry configurado como gerenciador de ambiente (`.vscode/settings.json`)
+- Dependências da API: `fastapi` e `uvicorn`
 
 <div align="center">
 <br>

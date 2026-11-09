@@ -90,13 +90,6 @@ curl -X POST http://127.0.0.1:8000/adicionar \
 ```json
 { "message": "Tarefa criada com sucesso!" }
 ```
-
----
-
-## 🌿 Guia de Git
-
-O arquivo [`git-atalhos.md`](git-atalhos.md) reúne os comandos mais usados, organizados por etapa: iniciar um repositório, preparar e salvar alterações, trabalhar com branches, sincronizar com o remoto e consultar o histórico.
-
 ---
 
 ## 🛠️ Ambiente

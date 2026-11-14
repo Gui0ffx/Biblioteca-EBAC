@@ -2,13 +2,43 @@ from fastapi import FastAPI, HTTPException, Body, Depends
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel
 from typing import Optional, Literal
+from sqlalchemy import create_engine, String, Boolean, func
+from sqlalchemy.orm import Mapped, mapped_column, sessionmaker, Session, declarative_base
 import secrets
 
+DATABASE_URL = "sqlite:///./tarefas.db"
+engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+Base = declarative_base() #Ativa o modelo de dados para o banco de dados
+
 meu_usuario = "admin" #Teste para autenticação
-minha_senha = "admin" #Teste para autenticação
+minha_senha = "admin" #Teste para autenticação  
 
 security = HTTPBasic()
+ 
+class TarefaBd(Base):
+    #modelo de dados para o banco de dados
+    __tablename__ = "tarefas"
+    nome: Mapped[str] = mapped_column(String,primary_key= True, index=True, unique=True)
+    descricao: Mapped[str] = mapped_column(String, index=True)
+    concluida: Mapped[bool] = mapped_column(Boolean, default=False) # True para concluída, False para pendente
 
+class TarefaModel(BaseModel):
+    nome: str
+    descricao: str
+    concluida: bool = False  # True para concluída, False para pendente
+
+Base.metadata.create_all(bind=engine) #iniciando o banco de dados
+
+#------------(Funcao para abrir uma sessao)------------#
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+        
 #------------(Funcao para autenticar um usuario)------------#
 
 def autenticar_usuario(credentials: HTTPBasicCredentials = Depends(security)):
@@ -26,7 +56,7 @@ def autenticar_usuario(credentials: HTTPBasicCredentials = Depends(security)):
 
 app = FastAPI(
     title="API de Tarefas",
-    description="API para gerenciar tarefas com autenticação básica",
+    description="API para gerenciar Tarefas com autenticação básica",
     version="1.0.0",
     contact={
         "name": "Guilherme Pimenta",
@@ -35,81 +65,88 @@ app = FastAPI(
     dependencies=[Depends(autenticar_usuario)]
 )
 
-class Tarefa(BaseModel):
-    nome: str
-    descricao: str
-    concluida: bool = False
+#------------(Funcao para listar Tarefas)------------#
 
-tarefas: list[Tarefa] = []
-
-
-#------------(Funcao para buscar e validar se uma tarefa existe)------------#
-
-def buscar_tarefa(nome: str):
-    for tarefa in tarefas:
-        if tarefa.nome == nome:
-            return tarefa
-    return None
-
-#------------(Funcao para listar tarefas)------------#
-
-@app.get("/tarefas")
-def listar_tarefas(page: int = 1, size: int = 10, order_by: Optional[Literal["nome", "descricao"]] = None):
-    lista_tarefas = tarefas
-
+@app.get("/tarefas", status_code=200)
+def listar_tarefas(page: int = 1, size: int = 10, db: Session = Depends(get_db), order_by: Optional[Literal["nome","descricao","concluida"]] = None):
     if page < 1 or size < 1:
         raise HTTPException(
             status_code=400,
             detail="Page ou Size inválidos!"
         )
 
-    if order_by:
-        lista_tarefas = sorted(tarefas, key=lambda x: getattr(x, order_by).lower())
+    query = db.query(TarefaBd)
+    if order_by in ["nome", "descricao"]:
+        query = query.order_by(func.lower(getattr(TarefaBd, order_by)))
+    elif order_by:
+        query = query.order_by(getattr(TarefaBd, order_by))
 
-    start = (page - 1) * size
-    end = start + size
+        
 
-    no_tarefas = len(tarefas)
-    if start >= no_tarefas and page > 1:
+    db_tarefas = query.offset((page - 1) * size).limit(size).all()
+
+    if not db_tarefas and page > 1:
         raise HTTPException(
             status_code=404,
-            detail="Página não encontrada"
+            detail="Página não encontrada!"
         )
 
-    tarefas_paginadas = lista_tarefas[start:end]
-    return{
+    db_total_tarefas = db.query(TarefaBd).count()
+    return {
         "page": page,
         "size": size,
-        "total_tarefas": len(tarefas),
-        "tarefas": tarefas_paginadas
+        "total_tarefas": db_total_tarefas,
+        "tarefas": [
+            {
+                "nome": tarefa.nome,
+                "descricao": tarefa.descricao,
+                "concluida": tarefa.concluida,
+            }
+            for tarefa in db_tarefas
+        ]
     }
-#------------(Funcao para adicionar uma tarefa)------------#
+
+#------------(Funcao para adicionar uma Tarefa)------------#
 
 @app.post("/adicionar", status_code=201)
-def criar_tarefa(tarefa: Tarefa):
-    if buscar_tarefa(tarefa.nome):
-        raise HTTPException(status_code=409, detail="Essa tarefa já existe") 
-    tarefas.append(tarefa)
-    return {"message": "Tarefa criada com sucesso!"}
-    
+def criar_tarefa(Tarefa: TarefaModel, db: Session = Depends(get_db)):
+    db_tarefa = db.query(TarefaBd).filter(TarefaBd.nome == Tarefa.nome).first()
+
+    if db_tarefa:
+        raise HTTPException(status_code=409, detail="Essa Tarefa já existe")
+
+    nova_tarefa = TarefaBd(
+
+        nome=Tarefa.nome,
+        descricao=Tarefa.descricao,
+        concluida=Tarefa.concluida
+    )
+    db.add(nova_tarefa)
+    db.commit()
+    return {"message": f"Tarefa '{Tarefa.nome}' adicionada com sucesso!"}
+
 #------------(Funcao para concluir tarefa)------------#
-
 @app.put("/concluir")
-def concluir_tarefa(nome: str = Body(embed=True)):
-    tarefa = buscar_tarefa(nome)
-    if not tarefa:
-        raise HTTPException(status_code=404, detail="Tarefa não encontrada")
-  
-    tarefa.concluida = True
-    return {"message": f"Tarefa '{nome}' marcada como concluída com sucesso!"}
+def concluir_tarefa(nome: str = Body(embed=True), db: Session = Depends(get_db)):
+    db_tarefa = db.query(TarefaBd).filter(TarefaBd.nome == nome).first()
 
-#------------(Funcao para deletar tarefas)------------#
+    if not db_tarefa:
+        raise HTTPException(status_code=404, detail="Tarefa não encontrada")
+
+    db_tarefa.concluida = True
+    db.commit()
+    db.refresh(db_tarefa)
+    return {"message": f"Tarefa '{db_tarefa.nome}' concluída com sucesso!"}
+
+#------------(Funcao para deletar Tarefas)------------#
 
 @app.delete("/deletar")
-def deletar_tarefa(nome: str = Body(embed=True)):
-    tarefa = buscar_tarefa(nome)
-    if not tarefa:
+def deletar_tarefa(nome: str = Body(embed=True), db: Session = Depends(get_db)):
+    db_tarefa = db.query(TarefaBd).filter(TarefaBd.nome == nome).first()
+
+    if not db_tarefa:
         raise HTTPException(status_code=404, detail="Tarefa não encontrada")
-         
-    tarefas.remove(tarefa)
-    return {"message": f"Tarefa '{nome}' excluída com sucesso!"}
+
+    db.delete(db_tarefa)
+    db.commit()
+    return {"message": f"Tarefa '{db_tarefa.nome}' excluída com sucesso!"}

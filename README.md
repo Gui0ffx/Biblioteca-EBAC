@@ -89,6 +89,7 @@ senha: admin
 curl -X POST http://localhost:8000/adicionar \
   -H "Content-Type: application/json" \
   -d '{"nome": "estudar", "descricao": "revisar FastAPI"}'
+  -u admin:admin
 ```
 
 ```json

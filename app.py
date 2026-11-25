@@ -4,16 +4,24 @@ from pydantic import BaseModel
 from typing import Optional, Literal
 from sqlalchemy import create_engine, String, Boolean, func
 from sqlalchemy.orm import Mapped, mapped_column, sessionmaker, Session, declarative_base
+import os
 import secrets
 
-DATABASE_URL = "sqlite:///./tarefas.db"
+DATABASE_URL = os.getenv("DATABASE_URL")
+if DATABASE_URL is None:
+    raise RuntimeError("A variável de ambiente DATABASE_URL não foi configurada")
+
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base() #Ativa o modelo de dados para o banco de dados
 
-meu_usuario = "admin" #Teste para autenticação
-minha_senha = "admin" #Teste para autenticação  
+USUARIO = os.getenv("USUARIO") #Teste para autenticação
+if USUARIO is None:
+    raise RuntimeError("A variável de ambiente USUARIO não foi configurada!")
+SENHA = os.getenv("SENHA") #Teste para autenticação
+if SENHA is None:
+    raise RuntimeError("A variável de ambiente SENHA não foi configurada!")
 
 security = HTTPBasic()
  
@@ -42,10 +50,10 @@ def get_db():
 #------------(Funcao para autenticar um usuario)------------#
 
 def autenticar_usuario(credentials: HTTPBasicCredentials = Depends(security)):
-    is_username_correct = secrets.compare_digest(credentials.username, meu_usuario)
-    is_password_correct = secrets.compare_digest(credentials.password, minha_senha)
+    usuario_ok = secrets.compare_digest(credentials.username, USUARIO or "")
+    senha_ok = secrets.compare_digest(credentials.password, SENHA or "")
 
-    if not (is_username_correct and is_password_correct):
+    if not (usuario_ok and senha_ok):
         raise HTTPException(
             status_code=401, 
             detail="Usuário ou senha incorretos!",
@@ -56,11 +64,11 @@ def autenticar_usuario(credentials: HTTPBasicCredentials = Depends(security)):
 
 app = FastAPI(
     title="API de Tarefas",
-    description="API para gerenciar Tarefas com autenticação básica",
+    description="API para gerenciar Tarefas com autenticação básica!",
     version="1.0.0",
     contact={
         "name": "Guilherme Pimenta",
-        "email": "guilhermepimenta970@gmail.com"
+        "Github": "https://github.com/Gui0ffx"
     },
     dependencies=[Depends(autenticar_usuario)]
 )
@@ -113,7 +121,7 @@ def criar_tarefa(Tarefa: TarefaModel, db: Session = Depends(get_db)):
     db_tarefa = db.query(TarefaBd).filter(TarefaBd.nome == Tarefa.nome).first()
 
     if db_tarefa:
-        raise HTTPException(status_code=409, detail="Essa Tarefa já existe")
+        raise HTTPException(status_code=409, detail="Essa Tarefa já existe!")
 
     nova_tarefa = TarefaBd(
 
